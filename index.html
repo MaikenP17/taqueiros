@@ -873,7 +873,7 @@ function buildWhatsAppMessage(){
   const lines = ids.map(id => {
     const p = findProduct(id);
     const qty = cart[id];
-    return `✅ ${qty}x ${p.name} - ${formatCOP(p.price*qty)}`;
+    return `- ${qty}x ${p.name} - ${formatCOP(p.price*qty)}`;
   });
   const total = cartTotal();
 
