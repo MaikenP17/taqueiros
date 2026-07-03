@@ -125,13 +125,14 @@
     font-weight:700; letter-spacing:.35em; text-transform:uppercase;
     color:var(--mostaza); font-size:.8rem; margin-bottom:1.2rem;
   }
-  .hero h1{
+  .hero-logo-frame{
     position:relative; z-index:1;
-    font-size:clamp(3.2rem, 11vw, 7.5rem);
-    color:var(--crema-suave);
-    text-shadow:0 10px 40px rgba(0,0,0,.5);
+    background:linear-gradient(160deg, rgba(139,27,31,.55), rgba(36,23,20,.55));
+    border:1px solid rgba(247,236,214,.12);
+    border-radius:24px; padding:1.6rem 2.4rem;
+    box-shadow:var(--sombra);
   }
-  .hero h1 .accent{color:var(--rojo-brillo); -webkit-text-stroke:2px var(--crema-suave);}
+  .hero-logo-frame img{width:min(380px, 62vw); display:block;}
   .hero p.tagline{
     position:relative; z-index:1;
     max-width:560px; margin:1.4rem auto 2.4rem;
@@ -293,6 +294,13 @@
   .remove-link{font-size:.75rem; color:#a33; font-weight:700; text-decoration:underline; background:none;}
 
   .drawer-footer{padding:1.2rem 1.4rem 1.5rem; border-top:1px solid rgba(0,0,0,.08); background:var(--crema-suave);}
+  .note-label{display:block; font-size:.78rem; font-weight:700; color:#5a4a3a; margin-bottom:.4rem;}
+  .note-input{
+    width:100%; resize:none; font-family:inherit; font-size:.88rem;
+    padding:.7rem .8rem; border-radius:12px; border:1px solid rgba(0,0,0,.12);
+    background:#fff; color:var(--carbon); margin-bottom:1rem;
+  }
+  .note-input:focus{outline:2px solid var(--rojo); outline-offset:1px;}
   .drawer-total{display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;}
   .drawer-total span:first-child{font-weight:700; color:#5a4a3a;}
   .drawer-total span:last-child{font-size:1.5rem; font-weight:800; color:var(--rojo-oscuro);}
@@ -391,7 +399,9 @@
 <!-- ================= HERO ================= -->
 <section class="hero">
   <div class="hero-eyebrow">Tacos · Birria · Antojitos</div>
-  <h1>LOS<br><span class="accent">TAQUEIROS</span></h1>
+  <div class="hero-logo-frame">
+    <img src="Recursos/logo/logo.png" alt="Los Taqueiros">
+  </div>
   <p class="tagline">Del comal directo a tu mesa: tacos jugosos, birria con consomé y dorilocos bien cargados. Pide en dos clics y recíbelo por WhatsApp.</p>
   <div class="hero-ctas">
     <a href="#menu" class="btn-primary">Ver el menú 🌮</a>
@@ -424,6 +434,8 @@
   </div>
   <div class="drawer-items" id="drawerItems"></div>
   <div class="drawer-footer">
+    <label class="note-label" for="orderNote">Nota para tu pedido (opcional)</label>
+    <textarea class="note-input" id="orderNote" placeholder="Ej: sin cebolla, extra picante, tocarle el timbre..." rows="2"></textarea>
     <div class="drawer-total">
       <span>Total</span>
       <span id="drawerTotal">$0</span>
@@ -687,14 +699,14 @@ function fillQtySlot(slot, id){
     btn.className = "add-btn";
     btn.setAttribute("aria-label","Agregar "+id);
     btn.textContent = "+";
-    btn.addEventListener("click", () => changeQty(id, 1));
+    btn.addEventListener("click", (e) => { e.stopPropagation(); changeQty(id, 1); });
     slot.appendChild(btn);
   }else{
     const wrap = document.createElement("div");
     wrap.className = "qty-control";
     wrap.innerHTML = `<button class="minus" aria-label="Quitar uno">–</button><span class="qty-num">${qty}</span><button class="plus" aria-label="Agregar uno">+</button>`;
-    wrap.querySelector(".minus").addEventListener("click", () => changeQty(id, -1));
-    wrap.querySelector(".plus").addEventListener("click", () => changeQty(id, 1));
+    wrap.querySelector(".minus").addEventListener("click", (e) => { e.stopPropagation(); changeQty(id, -1); });
+    wrap.querySelector(".plus").addEventListener("click", (e) => { e.stopPropagation(); changeQty(id, 1); });
     slot.appendChild(wrap);
   }
 }
@@ -876,18 +888,19 @@ function buildWhatsAppMessage(){
     return `- ${qty}x ${p.name} - ${formatCOP(p.price*qty)}`;
   });
   const total = cartTotal();
+  const note = document.getElementById("orderNote").value.trim();
 
-  const message = [
-    "🌮 ¡Ándale! Va mi pedido en Los Taqueiros:",
+  const parts = [
+    "Pedido Los Taqueiros:",
     "",
-    ...lines,
-    "",
-    `💰 *Total: ${formatCOP(total)}*`,
-    "",
-    "¡Con todo el sabor, gracias! 🔥🙌"
-  ].join("\n");
+    ...lines
+  ];
+  if(note){
+    parts.push("", `Nota: ${note}`);
+  }
+  parts.push("", `Total: ${formatCOP(total)}`, "", "Quiero hacer este pedido, gracias.");
 
-  return encodeURIComponent(message);
+  return encodeURIComponent(parts.join("\n"));
 }
 
 whatsappBtn.addEventListener("click", () => {
